@@ -1,0 +1,128 @@
+[
+ {
+  "zeit": 1790856000000,
+  "ohne_bremse": 10000.0,
+  "mit_bremse": 10000.0,
+  "mutig": 10000.0,
+  "btc_halten": 10000.0
+ },
+ {
+  "zeit": 1791222352941,
+  "ohne_bremse": 10121.49,
+  "mit_bremse": 9985.32,
+  "mutig": 10002.48,
+  "btc_halten": 10001.96
+ },
+ {
+  "zeit": 1791502305882,
+  "ohne_bremse": 10179.7,
+  "mit_bremse": 9955.1,
+  "mutig": 9992.11,
+  "btc_halten": 10028.26
+ },
+ {
+  "zeit": 1791782258823,
+  "ohne_bremse": 10141.04,
+  "mit_bremse": 9922.86,
+  "mutig": 10018.15,
+  "btc_halten": 10100.97
+ },
+ {
+  "zeit": 1792062211764,
+  "ohne_bremse": 10105.02,
+  "mit_bremse": 9911.05,
+  "mutig": 10095.77,
+  "btc_halten": 10180.99
+ },
+ {
+  "zeit": 1792342164705,
+  "ohne_bremse": 10207.68,
+  "mit_bremse": 9924.16,
+  "mutig": 10178.06,
+  "btc_halten": 10203.82
+ },
+ {
+  "zeit": 1792622117647,
+  "ohne_bremse": 10466.89,
+  "mit_bremse": 9939.07,
+  "mutig": 10197.68,
+  "btc_halten": 10151.03
+ },
+ {
+  "zeit": 1792902070588,
+  "ohne_bremse": 10739.01,
+  "mit_bremse": 9925.35,
+  "mutig": 10137.89,
+  "btc_halten": 10079.91
+ },
+ {
+  "zeit": 1793182023529,
+  "ohne_bremse": 10845.11,
+  "mit_bremse": 9876.0,
+  "mutig": 10057.55,
+  "btc_halten": 10074.8
+ },
+ {
+  "zeit": 1793461976470,
+  "ohne_bremse": 10745.33,
+  "mit_bremse": 9816.67,
+  "mutig": 10039.99,
+  "btc_halten": 10165.94
+ },
+ {
+  "zeit": 1793741929411,
+  "ohne_bremse": 10583.59,
+  "mit_bremse": 9782.72,
+  "mutig": 10114.54,
+  "btc_halten": 10297.98
+ },
+ {
+  "zeit": 1794021882352,
+  "ohne_bremse": 10553.9,
+  "mit_bremse": 9786.35,
+  "mutig": 10229.29,
+  "btc_halten": 10381.4
+ },
+ {
+  "zeit": 1794301835294,
+  "ohne_bremse": 10721.09,
+  "mit_bremse": 9806.56,
+  "mutig": 10302.13,
+  "btc_halten": 10375.73
+ },
+ {
+  "zeit": 1794581788235,
+  "ohne_bremse": 10973.55,
+  "mit_bremse": 9811.05,
+  "mutig": 10297.78,
+  "btc_halten": 10321.85
+ },
+ {
+  "zeit": 1794861741176,
+  "ohne_bremse": 11147.69,
+  "mit_bremse": 9787.16,
+  "mutig": 10253.87,
+  "btc_halten": 10294.25
+ },
+ {
+  "zeit": 1795141694117,
+  "ohne_bremse": 11188.68,
+  "mit_bremse": 9750.34,
+  "mutig": 10233.85,
+  "btc_halten": 10326.18
+ },
+ {
+  "zeit": 1795421647058,
+  "ohne_bremse": 11182.93,
+  "mit_bremse": 9723.8,
+  "mutig": 10260.46,
+  "btc_halten": 10385.23
+ },
+ {
+  "zeit": 1795701600000,
+  "ohne_bremse": 11240.35,
+  "mit_bremse": 9712.8,
+  "mutig": 10300.0,
+  "btc_halten": 10420.0
+ }
+]

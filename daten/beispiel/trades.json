@@ -1,0 +1,80 @@
+[
+ {
+  "konto": "mit_bremse",
+  "coin": "BTC",
+  "kauf_zeit": 1794571200000,
+  "kauf_preis": 59200.0,
+  "verkauf_zeit": 1795075200000,
+  "verkauf_preis": 58300.0,
+  "menge": 0.05,
+  "ergebnis_usd": -45.0,
+  "ergebnis_pct": -1.52,
+  "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+  "grund_verkauf": "Verlust-Limit erreicht"
+ },
+ {
+  "konto": "ohne_bremse",
+  "coin": "BTC",
+  "kauf_zeit": 1794571200000,
+  "kauf_preis": 59200.0,
+  "verkauf_zeit": 1794960000000,
+  "verkauf_preis": 61850.5,
+  "menge": 0.05,
+  "ergebnis_usd": 132.53,
+  "ergebnis_pct": 4.48,
+  "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+  "grund_verkauf": "Schluss unter dem 20-Kerzen-Tief – Trend gebrochen"
+ },
+ {
+  "konto": "mutig",
+  "coin": "ETH",
+  "kauf_zeit": 1794643200000,
+  "kauf_preis": 1620.0,
+  "verkauf_zeit": 1794931200000,
+  "verkauf_preis": 1790.4,
+  "menge": 4.1,
+  "ergebnis_usd": 698.64,
+  "ergebnis_pct": 10.52,
+  "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+  "grund_verkauf": "Schluss unter dem 20-Kerzen-Tief – Trend gebrochen"
+ },
+ {
+  "konto": "mit_bremse",
+  "coin": "ETH",
+  "kauf_zeit": 1794283200000,
+  "kauf_preis": 1590.0,
+  "verkauf_zeit": 1794614400000,
+  "verkauf_preis": 1655.0,
+  "menge": 1.9,
+  "ergebnis_usd": 123.5,
+  "ergebnis_pct": 4.09,
+  "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+  "grund_verkauf": "Schluss unter dem 20-Kerzen-Tief – Trend gebrochen"
+ },
+ {
+  "konto": "ohne_bremse",
+  "coin": "ETH",
+  "kauf_zeit": 1794283200000,
+  "kauf_preis": 1590.0,
+  "verkauf_zeit": 1794600000000,
+  "verkauf_preis": 1668.2,
+  "menge": 1.9,
+  "ergebnis_usd": 148.58,
+  "ergebnis_pct": 4.92,
+  "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+  "grund_verkauf": "Schluss unter dem 20-Kerzen-Tief – Trend gebrochen"
+ },
+ {
+  "konto": "mutig",
+  "coin": "BTC",
+  "kauf_zeit": 1794254400000,
+  "kauf_preis": 58100.0,
+  "verkauf_zeit": 1794484800000,
+  "verkauf_preis": 57420.0,
+  "menge": 0.12,
+  "ergebnis_usd": -81.6,
+  "ergebnis_pct": -1.17,
+  "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+  "grund_verkauf": "Verlust-Limit erreicht"
+ }
+]

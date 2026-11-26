@@ -1,0 +1,107 @@
+[
+ {
+  "zeit": 1794744000000,
+  "ohne_bremse": 10000.0,
+  "mit_bremse": 10000.0,
+  "mutig": 10000.0,
+  "btc_halten": 10000.0
+ },
+ {
+  "zeit": 1794812400000,
+  "ohne_bremse": 10002.85,
+  "mit_bremse": 10006.46,
+  "mutig": 10006.02,
+  "btc_halten": 10001.62
+ },
+ {
+  "zeit": 1794880800000,
+  "ohne_bremse": 10004.21,
+  "mit_bremse": 10007.71,
+  "mutig": 9982.31,
+  "btc_halten": 10022.9
+ },
+ {
+  "zeit": 1794949200000,
+  "ohne_bremse": 10003.36,
+  "mit_bremse": 10008.41,
+  "mutig": 10045.34,
+  "btc_halten": 10080.61
+ },
+ {
+  "zeit": 1795017600000,
+  "ohne_bremse": 10002.66,
+  "mit_bremse": 10015.95,
+  "mutig": 10225.75,
+  "btc_halten": 10142.52
+ },
+ {
+  "zeit": 1795086000000,
+  "ohne_bremse": 10005.14,
+  "mit_bremse": 10031.28,
+  "mutig": 10409.6,
+  "btc_halten": 10159.26
+ },
+ {
+  "zeit": 1795154400000,
+  "ohne_bremse": 10010.9,
+  "mit_bremse": 10046.55,
+  "mutig": 10448.88,
+  "btc_halten": 10121.14
+ },
+ {
+  "zeit": 1795222800000,
+  "ohne_bremse": 10016.59,
+  "mit_bremse": 10052.63,
+  "mutig": 10323.93,
+  "btc_halten": 10074.96
+ },
+ {
+  "zeit": 1795291200000,
+  "ohne_bremse": 10018.67,
+  "mit_bremse": 10048.76,
+  "mutig": 10175.87,
+  "btc_halten": 10079.23
+ },
+ {
+  "zeit": 1795359600000,
+  "ohne_bremse": 10016.98,
+  "mit_bremse": 10043.54,
+  "mutig": 10167.59,
+  "btc_halten": 10144.91
+ },
+ {
+  "zeit": 1795428000000,
+  "ohne_bremse": 10014.85,
+  "mit_bremse": 10046.2,
+  "mutig": 10321.99,
+  "btc_halten": 10225.94
+ },
+ {
+  "zeit": 1795496400000,
+  "ohne_bremse": 10015.51,
+  "mit_bremse": 10057.46,
+  "mutig": 10511.06,
+  "btc_halten": 10268.93
+ },
+ {
+  "zeit": 1795564800000,
+  "ohne_bremse": 10018.95,
+  "mit_bremse": 10069.98,
+  "mutig": 10601.53,
+  "btc_halten": 10266.77
+ },
+ {
+  "zeit": 1795633200000,
+  "ohne_bremse": 10022.45,
+  "mit_bremse": 10077.11,
+  "mutig": 10591.47,
+  "btc_halten": 10258.25
+ },
+ {
+  "zeit": 1795701600000,
+  "ohne_bremse": 10024.0,
+  "mit_bremse": 10080.0,
+  "mutig": 10589.2,
+  "btc_halten": 10277.96
+ }
+]

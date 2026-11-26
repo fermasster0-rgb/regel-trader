@@ -1,0 +1,148 @@
+{
+ "start_ms": 1790856000000,
+ "tag": 57,
+ "abgeschlossene_tage": 56,
+ "letzte_kerze": {
+  "BTC": 1795687200000,
+  "ETH": 1795687200000
+ },
+ "preise": {
+  "BTC": 62480.0,
+  "ETH": 1745.5
+ },
+ "parameter": {
+  "n_trend": 200,
+  "n_ein": 40,
+  "n_aus": 20,
+  "k_stop": 3.0,
+  "k_trail": 3.0,
+  "n_atr": 14,
+  "beschreibung": "Trend: Durchschnitt der letzten 200 Kerzen · Kauf: Ausbruch über das 40-Kerzen-Hoch · Verkauf: Schluss unter dem 20-Kerzen-Tief · Verlust-Limit: 3 × übliche Schwankung, nachgezogen mit 3 × übliche Schwankung"
+ },
+ "konten": {
+  "ohne_bremse": {
+   "name": "Ohne Bremse",
+   "stufe": "Ruhig",
+   "bargeld": 10000.0,
+   "pleite": false,
+   "positionen": {},
+   "vorgemerkt": {},
+   "trades": [
+    {
+     "coin": "BTC",
+     "kauf_zeit": 1794571200000,
+     "kauf_preis": 59200.0,
+     "verkauf_zeit": 1794960000000,
+     "verkauf_preis": 61850.5,
+     "menge": 0.05,
+     "ergebnis_usd": 132.525,
+     "ergebnis_pct": 0.04477195945945946,
+     "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+     "grund_verkauf": "Schluss unter dem 20-Kerzen-Tief – Trend gebrochen"
+    },
+    {
+     "coin": "ETH",
+     "kauf_zeit": 1794283200000,
+     "kauf_preis": 1590.0,
+     "verkauf_zeit": 1794600000000,
+     "verkauf_preis": 1668.2,
+     "menge": 1.9,
+     "ergebnis_usd": 148.58000000000007,
+     "ergebnis_pct": 0.04918238993710695,
+     "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+     "grund_verkauf": "Schluss unter dem 20-Kerzen-Tief – Trend gebrochen"
+    }
+   ],
+   "wert": 11240.35,
+   "abgeschlossene_trades": 9,
+   "urteil": "bewiesen"
+  },
+  "mit_bremse": {
+   "name": "Mit Bremse",
+   "stufe": "Ruhig",
+   "bargeld": 10000.0,
+   "pleite": false,
+   "positionen": {},
+   "vorgemerkt": {},
+   "trades": [
+    {
+     "coin": "BTC",
+     "kauf_zeit": 1794571200000,
+     "kauf_preis": 59200.0,
+     "verkauf_zeit": 1795075200000,
+     "verkauf_preis": 58300.0,
+     "menge": 0.05,
+     "ergebnis_usd": -45.0,
+     "ergebnis_pct": -0.015202702702702704,
+     "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+     "grund_verkauf": "Verlust-Limit erreicht"
+    },
+    {
+     "coin": "ETH",
+     "kauf_zeit": 1794283200000,
+     "kauf_preis": 1590.0,
+     "verkauf_zeit": 1794614400000,
+     "verkauf_preis": 1655.0,
+     "menge": 1.9,
+     "ergebnis_usd": 123.5,
+     "ergebnis_pct": 0.040880503144654086,
+     "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+     "grund_verkauf": "Schluss unter dem 20-Kerzen-Tief – Trend gebrochen"
+    }
+   ],
+   "wert": 9712.8,
+   "abgeschlossene_trades": 7,
+   "urteil": "nicht_bewiesen"
+  },
+  "mutig": {
+   "name": "Mutig",
+   "stufe": "Mutig + Hebel",
+   "bargeld": 10000.0,
+   "pleite": false,
+   "positionen": {},
+   "vorgemerkt": {},
+   "trades": [
+    {
+     "coin": "ETH",
+     "kauf_zeit": 1794643200000,
+     "kauf_preis": 1620.0,
+     "verkauf_zeit": 1794931200000,
+     "verkauf_preis": 1790.4,
+     "menge": 4.1,
+     "ergebnis_usd": 698.6400000000003,
+     "ergebnis_pct": 0.10518518518518524,
+     "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+     "grund_verkauf": "Schluss unter dem 20-Kerzen-Tief – Trend gebrochen"
+    },
+    {
+     "coin": "BTC",
+     "kauf_zeit": 1794254400000,
+     "kauf_preis": 58100.0,
+     "verkauf_zeit": 1794484800000,
+     "verkauf_preis": 57420.0,
+     "menge": 0.12,
+     "ergebnis_usd": -81.6,
+     "ergebnis_pct": -0.0117039586919105,
+     "grund_kauf": "Ausbruch über das 40-Kerzen-Hoch im Aufwärtstrend",
+     "grund_verkauf": "Verlust-Limit erreicht"
+    }
+   ],
+   "wert": 10300.0,
+   "abgeschlossene_trades": 3,
+   "urteil": "zu_wenige_trades"
+  }
+ },
+ "btc_halten": {
+  "menge": 0.1645,
+  "start_preis": 60714.01,
+  "wert": 10420.0
+ },
+ "bremse": {
+  "aktiv": false,
+  "bis_ms": null,
+  "grund": "",
+  "quelle": "",
+  "nachrichten_ok": true
+ },
+ "ereignisse": []
+}
