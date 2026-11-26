@@ -2,7 +2,9 @@ name: Regel-Trader handeln
 
 on:
   schedule:
-    - cron: "5 */4 * * *"
+    # stündlich als Sicherheitsnetz: GitHub lässt geplante Läufe manchmal aus.
+    # Der Bot verarbeitet nur neue 4-h-Kerzen, öfter laufen ändert also nichts am Handeln.
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
