@@ -226,14 +226,16 @@
       var d = kontoDaten(z, k.key);
       return d ? { k: k, d: d, wert: Number(d.wert) } : null;
     }).filter(Boolean);
-    var bester = eintraege.reduce(function (m, e) { return !m || e.wert > m.wert ? e : m; }, null);
+    // "vorne" nur, wenn ein Konto wirklich führt (mind. 1 $ vor dem Zweiten) – bei Gleichstand kein Schild
+    var sortiert = eintraege.slice().sort(function (a, b) { return b.wert - a.wert; });
+    var bester = sortiert.length > 1 && sortiert[0].wert - sortiert[1].wert >= 1 ? sortiert[0] : null;
 
     eintraege.forEach(function (e) {
       var k = e.k, d = e.d;
       var c = el("div", "kpi glas k-" + k.cls);
       var kopfz = el("div", "kpi-kopf");
       add(kopfz, punkt(k.cls), el("span", "kpi-name", k.name));
-      if (bester && e === bester && eintraege.length > 1) add(kopfz, el("span", "vorne", "vorne"));
+      if (bester && e === bester) add(kopfz, el("span", "vorne", "vorne"));
       add(c, kopfz);
 
       var p = (e.wert / START_KAPITAL - 1) * 100;
