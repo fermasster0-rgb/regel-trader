@@ -1,5 +1,6 @@
-// Regel-Trader – Glas-Dashboard. Kein Framework, keine Bibliothek.
+// Regel-Trader – Dashboard. Kein Framework, keine Bibliothek.
 // Alle Inhalte werden mit createElement/textContent gebaut (nie innerHTML mit Daten).
+// Am PC: ein Bildschirm ohne Scrollen (CSS-Grid). Am Handy: alles untereinander.
 (function () {
   "use strict";
 
@@ -18,13 +19,19 @@
   var ALTER_PRUEFEN = !BEISPIEL || param === "veraltet";
 
   var KONTEN = [
-    { key: "ohne_bremse", name: "Ohne Bremse", farbe: "#6FA8FF", cls: "ohne" },
-    { key: "mit_bremse", name: "Mit Bremse", farbe: "#FFAE5E", cls: "mit" },
-    { key: "mutig", name: "Mutig", farbe: "#C084FC", cls: "mutig" },
-    { key: "btc_halten", name: "Bitcoin halten", farbe: "#AEB6C9", cls: "btc" }
+    { key: "ohne_bremse", name: "Ohne Bremse", kurz: "Ruhig, ohne Nachrichten-Bremse", farbe: "#6FA8FF", cls: "ohne" },
+    { key: "mit_bremse", name: "Mit Bremse", kurz: "Ruhig, mit Nachrichten-Bremse", farbe: "#FFAE5E", cls: "mit" },
+    { key: "mutig", name: "Mutig", kurz: "3 % Risiko pro Trade", farbe: "#C084FC", cls: "mutig" },
+    { key: "btc_halten", name: "Bitcoin halten", kurz: "Vergleich: einfach kaufen und halten", farbe: "#AEB6C9", cls: "btc" }
   ];
-  var KONTO_NAME = { ohne_bremse: "Ohne Bremse", mit_bremse: "Mit Bremse", mutig: "Mutig", btc_halten: "Bitcoin halten" };
-  var KONTO_CLS = { ohne_bremse: "ohne", mit_bremse: "mit", mutig: "mutig", btc_halten: "btc" };
+  var KONTO = {};
+  KONTEN.forEach(function (k) { KONTO[k.key] = k; });
+
+  var URTEILE = {
+    bewiesen: { cls: "gut", text: "Bewiesen – hat Geld gemacht" },
+    nicht_bewiesen: { cls: "schlecht", text: "Nicht bewiesen – kein Gewinn" },
+    zu_wenige_trades: { cls: "neutral", text: "Kein Urteil – zu wenige Trades" }
+  };
 
   // ---------- kleine Bausteine ----------
   function el(tag, cls, text) {
@@ -37,11 +44,13 @@
     for (var i = 1; i < arguments.length; i++) if (arguments[i]) parent.appendChild(arguments[i]);
     return parent;
   }
-  function svg(tag, attrs) {
+  function svg(tag, attrs, text) {
     var e = document.createElementNS(SVG_NS, tag);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
     return e;
   }
+  function punkt(cls) { return el("span", "punkt c-" + cls); }
 
   // ---------- Zahlen und Zeiten (deutsches Format) ----------
   var MINUS = "−";
@@ -50,430 +59,448 @@
   }
   function usd(n, stellen) {
     if (stellen === undefined) stellen = Math.abs(n) >= 1000 ? 0 : 2;
-    return (n < 0 ? MINUS : "") + zahl(n, stellen) + " $";
+    return (n < 0 ? MINUS : "") + zahl(n, stellen) + " $";
   }
-  function usdVz(n) { // mit Vorzeichen
-    var s = usd(n, Math.abs(n) >= 1000 ? 0 : 2);
-    return (n > 0 ? "+" : "") + s;
-  }
+  function usdVz(n) { return (n > 0 ? "+" : "") + usd(n, Math.abs(n) >= 1000 ? 0 : 2); }
   function pct(n, stellen) {
     if (stellen === undefined) stellen = 1;
-    var gerundet = Math.round(Math.abs(n) * Math.pow(10, stellen)) / Math.pow(10, stellen);
-    var vz = n < 0 && gerundet !== 0 ? MINUS : (n > 0 && gerundet !== 0 ? "+" : "");
-    return vz + zahl(gerundet, stellen) + " %";
+    var f = Math.pow(10, stellen);
+    var g = Math.round(Math.abs(n) * f) / f;
+    var vz = n < 0 && g !== 0 ? MINUS : (n > 0 && g !== 0 ? "+" : "");
+    return vz + zahl(g, stellen) + " %";
   }
-  function pctOhneVz(n) { return zahl(n, 1) + " %"; }
-  function vorzeichenKlasse(n) { return n > 0 ? "gut" : (n < 0 ? "schlecht" : ""); }
+  function pctOhneVz(n) { return zahl(n, 1) + " %"; }
+  function klasse(n) { return n > 0.0001 ? "gut" : (n < -0.0001 ? "schlecht" : ""); }
 
-  function fmt(d, opts) {
-    opts.timeZone = ZONE;
-    return d.toLocaleString("de-DE", opts);
-  }
+  function fmt(d, opts) { opts.timeZone = ZONE; return d.toLocaleString("de-DE", opts); }
   function uhrzeit(d) { return fmt(d, { hour: "2-digit", minute: "2-digit", hour12: false }); }
   function datumKurz(d) { return fmt(d, { day: "2-digit", month: "2-digit" }); }
   function datumLang(d) { return fmt(d, { day: "2-digit", month: "2-digit", year: "numeric" }); }
-  function tagKey(d) { return fmt(d, { day: "2-digit", month: "2-digit", year: "numeric" }); }
   function datumUhr(d) { return datumKurz(d) + ", " + uhrzeit(d); }
+  function istHeute(d) { return datumLang(d) === datumLang(new Date()); }
   function dauerText(ms) {
     var h = Math.floor(ms / 3600000);
     if (h < 48) return h + (h === 1 ? " Stunde" : " Stunden");
-    var t = Math.floor(h / 24);
-    return t + " Tagen";
+    return Math.floor(h / 24) + " Tagen";
   }
-  // Ende eines Zeitraums: steht dort genau Mitternacht, ist das Ende ausgeschlossen -> einen Tag zurück
+  // Ende eines Zeitraums: genau Mitternacht heißt "ausgeschlossen" -> einen Tag zurück
   function endeAnzeige(iso) {
     var d = new Date(iso);
     if (d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0) d = new Date(d.getTime() - 86400000);
     return d;
   }
+  function jahre(von, bis) {
+    var a = new Date(von).getUTCFullYear(), b = endeAnzeige(bis).getUTCFullYear();
+    return a === b ? String(a) : a + "–" + String(b).slice(2);
+  }
 
   // ---------- Laden ----------
-  function laden(datei) {
-    return fetch(ORDNER + datei + "?t=" + Date.now(), { cache: "no-store" })
+  function holen(pfad) {
+    return fetch(pfad + "?t=" + Date.now(), { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .catch(function () { return null; });
   }
+  function laden(datei) { return holen(ORDNER + datei); }
   function ladenRueckblick() {
-    // Der Rückblick liegt immer in daten/, auch im Beispiel-Modus (falls dort keiner liegt)
     return laden("rueckblick.json").then(function (d) {
-      if (d || ORDNER === "daten/") return d;
-      return fetch("daten/rueckblick.json?t=" + Date.now(), { cache: "no-store" })
-        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-        .catch(function () { return null; });
+      return d || ORDNER === "daten/" ? d : holen("daten/rueckblick.json");
     });
   }
 
   // ---------- Fenster ----------
-  function glas(extra) { return el("section", "glas" + (extra ? " " + extra : "")); }
-  function titelzeile(titel, rechts) {
-    var z = el("div", "titelzeile");
-    add(z, el("h2", "titel", titel));
-    if (rechts) add(z, rechts);
-    return z;
-  }
-  function warnIcon(farbe) {
-    var s = svg("svg", { width: 28, height: 28, viewBox: "0 0 24 24", fill: "none", stroke: farbe,
-      "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" });
-    add(s, svg("circle", { cx: 12, cy: 12, r: 9 }), svg("line", { x1: 12, y1: 7, x2: 12, y2: 13 }),
-      svg("circle", { cx: 12, cy: 16.5, r: 0.6 }));
-    return s;
-  }
-  function hinweisFenster(klasse, farbe, t1, t2) {
-    var g = glas("hinweis " + klasse);
-    var txt = el("div", "txt");
-    add(txt, el("div", "t1", t1));
-    if (t2) add(txt, el("div", "t2", t2));
-    add(g, warnIcon(farbe), txt);
+  function karte(bereich, titel, rechts) {
+    var g = el("section", "glas " + bereich);
+    if (titel) {
+      var z = el("div", "kartenkopf");
+      add(z, el("h2", null, titel));
+      if (rechts) add(z, rechts);
+      add(g, z);
+    }
     return g;
   }
+  function icon(art, farbe) {
+    var s = svg("svg", { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: farbe,
+      "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" });
+    add(s, svg("circle", { cx: 12, cy: 12, r: 9 }));
+    if (art === "ok") add(s, svg("path", { d: "M8 12.5l2.7 2.7L16 9.5" }));
+    else add(s, svg("line", { x1: 12, y1: 7, x2: 12, y2: 13 }), svg("circle", { cx: 12, cy: 16.5, r: 0.6 }));
+    return s;
+  }
+  function banner(cls, farbe, t1, t2) {
+    var b = el("div", "banner " + cls);
+    var t = el("div", "txt");
+    add(t, el("b", null, t1));
+    if (t2) add(t, el("span", null, t2));
+    add(b, icon("warn", farbe), t);
+    return b;
+  }
 
-  // ---------- 1. Kopf ----------
-  function kopf(zustand, status, verlauf) {
-    var k = el("header", "kopf");
-    var links = el("div", "links");
-    var letzter = letzterLauf(status, verlauf);
-    var zeile = "Spielgeld";
-    if (letzter) zeile += " · zuletzt aktualisiert " + uhrzeit(letzter);
-    add(links, el("div", "zeile", zeile), el("h1", null, "Regel-Trader"));
-    add(k, links);
-    if (zustand && typeof zustand.tag === "number") {
-      add(k, el("div", "chip", probeVorbei(zustand) ? "Probezeit vorbei" : "Tag " + zustand.tag + " / " + PROBE_TAGE));
-    }
-    return k;
+  // ---------- Hilfen zum Zustand ----------
+  function volleTage(z) { return typeof z.abgeschlossene_tage === "number" ? z.abgeschlossene_tage : z.tag - 1; }
+  function hatUrteil(z) {
+    var k = z.konten || {};
+    return Object.keys(k).some(function (key) { return !!URTEILE[k[key].urteil]; });
   }
-  // Volle Tage seit dem Start; "tag" zählt ab 1 (Tag 1 = erster Tag)
-  function volleTage(zustand) {
-    return typeof zustand.abgeschlossene_tage === "number" ? zustand.abgeschlossene_tage : zustand.tag - 1;
-  }
-  function hatUrteil(zustand) {
-    var konten = zustand.konten || {};
-    return Object.keys(konten).some(function (k) { return !!URTEILE[konten[k].urteil]; });
-  }
-  // Vorbei, sobald 56 volle Tage um sind – oder sobald ein endgültiges Urteil steht
-  function probeVorbei(zustand) { return volleTage(zustand) >= PROBE_TAGE || hatUrteil(zustand); }
+  function probeVorbei(z) { return volleTage(z) >= PROBE_TAGE || hatUrteil(z); }
   function letzterLauf(status, verlauf) {
     if (status && status.letzter_lauf) { var d = new Date(status.letzter_lauf); if (!isNaN(d)) return d; }
     if (verlauf && verlauf.length) return new Date(verlauf[verlauf.length - 1].zeit);
     return null;
   }
+  function kontoDaten(z, key) { return key === "btc_halten" ? z.btc_halten : (z.konten || {})[key]; }
+
+  // ---------- 1. Kopf ----------
+  function kopf(z, status, verlauf) {
+    var k = el("header", "kopf");
+    var links = el("div", "kopf-links");
+    add(links, el("h1", null, "Regel-Trader"), el("span", "untertitel", "Trendfolge · BTC & ETH · Spielgeld"));
+    add(k, links);
+
+    var rechts = el("div", "kopf-rechts");
+    if (z && typeof z.tag === "number") {
+      var tage = Math.min(volleTage(z), PROBE_TAGE);
+      var fort = el("div", "fortschritt");
+      add(fort, el("span", "fort-text", probeVorbei(z) ? "Bewährungsprobe vorbei" : "Tag " + z.tag + " von " + PROBE_TAGE));
+      var bar = el("div", "bar");
+      var fill = el("div", "bar-fill");
+      fill.style.width = (tage / PROBE_TAGE * 100) + "%";
+      add(bar, fill);
+      add(fort, bar);
+      add(rechts, fort);
+    }
+    if (z && z.bremse) add(rechts, bremsPille(z.bremse));
+    var letzter = letzterLauf(status, verlauf);
+    if (letzter) {
+      var lauf = el("div", "lauf");
+      add(lauf, el("span", "l", "Letzter Lauf"), el("b", null, istHeute(letzter) ? uhrzeit(letzter) + " Uhr" : datumUhr(letzter)));
+      if (status && status.naechster_lauf_ca) {
+        var n = new Date(status.naechster_lauf_ca);
+        if (!isNaN(n)) add(lauf, el("span", "l", "nächster ca. " + uhrzeit(n)));
+      }
+      add(rechts, lauf);
+    }
+    add(k, rechts);
+    return k;
+  }
+
+  function bremsPille(b) {
+    var p = el("div", "bremse");
+    var titel, text, cls;
+    if (b.aktiv) {
+      var bis = b.bis_ms ? new Date(b.bis_ms) : null;
+      cls = "aktiv";
+      titel = "Bremse aktiv" + (bis ? " bis " + (istHeute(bis) ? uhrzeit(bis) : datumUhr(bis)) : "");
+      text = (b.grund || "") + " – keine neuen Käufe, Verkäufe laufen normal.";
+    } else if (b.nachrichten_ok === false) {
+      cls = "unklar"; titel = "Nachrichten nicht erreichbar"; text = "Der Trader handelt ohne Bremse, bis die Nachrichten wieder erreichbar sind.";
+    } else {
+      cls = "frei"; titel = "Bremse frei"; text = "Keine Schock-Meldung und kein Termin – das Konto mit Bremse darf kaufen.";
+    }
+    p.className = "bremse " + cls;
+    p.title = text;
+    add(p, el("span", "licht"), el("span", null, titel));
+    return p;
+  }
+
   function warnungen(status, verlauf) {
     var liste = [];
     var letzter = letzterLauf(status, verlauf);
     if (status && status.ok === false) {
-      liste.push(hinweisFenster("fehler", "#FFB4B4", "Der letzte Lauf ist fehlgeschlagen",
+      liste.push(banner("fehler", "#FFB4B4", "Der letzte Lauf ist fehlgeschlagen",
         (status.fehler || "Unbekannter Fehler") + " – gehandelt wurde dabei nicht."));
     }
     if (ALTER_PRUEFEN && letzter) {
       var alter = Date.now() - letzter.getTime();
       if (alter > VERALTET_STUNDEN * 3600000) {
-        liste.push(hinweisFenster("warn", "#FFC48A", "Der Trader ist seit " + dauerText(alter) + " nicht mehr gelaufen",
-          "Letzter Lauf: " + datumUhr(letzter) + ". Die Zahlen unten sind nicht aktuell."));
+        liste.push(banner("warn", "#FFC48A", "Seit " + dauerText(alter) + " kein Lauf mehr",
+          "Letzter Lauf: " + datumUhr(letzter) + ". Die Zahlen sind nicht aktuell."));
       }
     }
     return liste;
   }
 
-  // ---------- 2. Wer liegt vorne? ----------
-  function stand(zustand) {
-    var res = [];
-    KONTEN.forEach(function (k) {
-      var d = k.key === "btc_halten" ? zustand.btc_halten : (zustand.konten || {})[k.key];
-      if (!d) return;
-      res.push({ k: k, wert: Number(d.wert), pleite: !!d.pleite,
-        trades: typeof d.abgeschlossene_trades === "number" ? d.abgeschlossene_trades : null });
-    });
-    res.sort(function (a, b) { return b.wert - a.wert; });
-    return res;
-  }
+  // ---------- 2. Kennzahlen ----------
+  function kennzahlen(z) {
+    var reihe = el("section", "kpis");
+    var eintraege = KONTEN.map(function (k) {
+      var d = kontoDaten(z, k.key);
+      return d ? { k: k, d: d, wert: Number(d.wert) } : null;
+    }).filter(Boolean);
+    var bester = eintraege.reduce(function (m, e) { return !m || e.wert > m.wert ? e : m; }, null);
 
-  function diagramm(verlauf) {
-    var W = 324, H = 150, PX = 4, PY = 12;
-    var s = svg("svg", { "class": "chart", viewBox: "0 0 " + W + " " + H, role: "img",
-      "aria-label": "Verlauf der vier Konten seit Start" });
-    var t0 = verlauf[0].zeit, t1 = verlauf[verlauf.length - 1].zeit;
-    var lo = START_KAPITAL, hi = START_KAPITAL;
-    verlauf.forEach(function (p) {
-      KONTEN.forEach(function (k) { var v = p[k.key]; if (typeof v === "number") { lo = Math.min(lo, v); hi = Math.max(hi, v); } });
-    });
-    var rand = Math.max((hi - lo) * 0.12, 20);
-    lo -= rand; hi += rand;
-    function x(t) { return verlauf.length < 2 || t1 === t0 ? W / 2 : PX + (t - t0) / (t1 - t0) * (W - 2 * PX - 6); }
-    function y(v) { return PY + (hi - v) / (hi - lo) * (H - 2 * PY); }
+    eintraege.forEach(function (e) {
+      var k = e.k, d = e.d;
+      var c = el("div", "kpi glas k-" + k.cls);
+      var kopfz = el("div", "kpi-kopf");
+      add(kopfz, punkt(k.cls), el("span", "kpi-name", k.name));
+      if (bester && e === bester && eintraege.length > 1) add(kopfz, el("span", "vorne", "vorne"));
+      add(c, kopfz);
 
-    add(s, svg("line", { x1: 0, y1: y(START_KAPITAL), x2: W, y2: y(START_KAPITAL),
-      stroke: "rgba(255,255,255,0.18)", "stroke-dasharray": "3 5" }));
-    var lbl = svg("text", { x: 2, y: y(START_KAPITAL) - 4, fill: "rgba(255,255,255,0.5)", "font-size": 9, "font-family": "Inter, sans-serif" });
-    lbl.textContent = "Start " + usd(START_KAPITAL, 0).replace(" ", " ");
-    add(s, lbl);
+      var p = (e.wert / START_KAPITAL - 1) * 100;
+      if (d.pleite) add(c, el("div", "kpi-wert schlecht", "pleite"));
+      else add(c, el("div", "kpi-wert " + klasse(Math.round(p * 10) / 10), pct(p)));
+      add(c, el("div", "kpi-geld", usd(e.wert)));
 
-    // Reihenfolge: Bitcoin zuerst (hinten), die Konten darüber
-    var zeichen = [KONTEN[3], KONTEN[2], KONTEN[0], KONTEN[1]];
-    zeichen.forEach(function (k) {
-      var pts = verlauf.filter(function (p) { return typeof p[k.key] === "number"; });
-      if (!pts.length) return;
-      if (pts.length > 1) {
-        var d = pts.map(function (p, i) { return (i ? "L" : "M") + x(p.zeit).toFixed(1) + " " + y(p[k.key]).toFixed(1); }).join(" ");
-        var attrs = { d: d, fill: "none", stroke: k.farbe, "stroke-width": k.key === "btc_halten" ? 2 : 3,
-          "stroke-linejoin": "round", "stroke-linecap": "round" };
-        if (k.key === "btc_halten") attrs["stroke-dasharray"] = "5 4";
-        add(s, svg("path", attrs));
+      var fuss = el("div", "kpi-fuss");
+      if (k.key === "btc_halten") {
+        add(fuss, el("span", null, k.kurz));
+      } else {
+        var u = URTEILE[d.urteil];
+        if (u) {
+          add(fuss, el("span", "urteil " + u.cls, u.text));
+        } else {
+          var t = typeof d.abgeschlossene_trades === "number" ? d.abgeschlossene_trades : 0;
+          var tz = el("div", "trades-zaehler");
+          add(tz, el("span", null, "Trades " + t + " / " + MIN_TRADES));
+          var mini = el("div", "mini");
+          for (var i = 0; i < MIN_TRADES; i++) add(mini, el("i", i < t ? "an" : null));
+          add(tz, mini);
+          add(fuss, tz);
+          var offen = Object.keys(d.positionen || {});
+          add(fuss, el("span", "zustand", offen.length ? "im Markt: " + offen.join(", ") : "wartet auf Signal"));
+        }
       }
-      var last = pts[pts.length - 1];
-      add(s, svg("circle", { cx: x(last.zeit).toFixed(1), cy: y(last[k.key]).toFixed(1), r: 4, fill: k.farbe }));
+      add(c, fuss);
+      add(reihe, c);
     });
-    return { svg: s, von: new Date(t0), bis: new Date(t1) };
+    return reihe;
   }
 
-  function kachel(eintrag, erster) {
-    var k = eintrag.k;
-    var c = el("div", "kachel k-" + k.cls + (erster ? " erster" : ""));
-    var n = el("div", "n");
-    add(n, el("span", "punkt c-" + k.cls), el("span", null, k.name));
-    add(c, n);
-    if (eintrag.pleite) {
-      add(c, el("div", "p schlecht", "pleite"), el("div", "d", usd(eintrag.wert)));
-    } else {
-      var p = (eintrag.wert / START_KAPITAL - 1) * 100;
-      add(c, el("div", "p " + vorzeichenKlasse(Math.round(p * 10) / 10), pct(p)), el("div", "d", usd(eintrag.wert)));
-    }
-    if (eintrag.trades !== null) add(c, el("div", "v", "abgeschlossene Trades: " + eintrag.trades + " / mind. " + MIN_TRADES));
-    if (erster) add(c, el("div", "v", "liegt vorne"));
-    return c;
-  }
-
-  function abschnittVorne(zustand, verlauf) {
-    var g = glas();
-    add(g, titelzeile("Wer liegt vorne?", el("div", "klein", "seit Start")));
-    if (verlauf && verlauf.length) {
-      var dg = diagramm(verlauf);
-      add(g, dg.svg);
-      var achse = el("div", "zl");
-      add(achse, el("span", "klein", datumKurz(dg.von)), el("span", "klein", "jetzt"));
-      add(g, achse);
-    }
-    var kacheln = el("div", "kacheln");
-    stand(zustand).forEach(function (e, i) { add(kacheln, kachel(e, i === 0)); });
-    add(g, kacheln);
-    add(g, el("div", "klein", "Alle Konten starten mit " + usd(START_KAPITAL, 0) + " Spielgeld. Die Werte sind nach allen Gebühren – so viel bliebe, wenn jetzt alles verkauft würde."));
+  // ---------- 3. Diagramm ----------
+  function abschnittVerlauf(verlauf) {
+    var legende = el("div", "legende");
+    KONTEN.forEach(function (k) {
+      var l = el("span", "leg");
+      add(l, el("i", "strich s-" + k.cls), el("span", null, k.name));
+      add(legende, l);
+    });
+    var g = karte("verlauf", "Kontoverlauf seit Start (in %)", legende);
+    var flaeche = el("div", "chart-flaeche");
+    flaeche._verlauf = verlauf || [];
+    add(g, flaeche);
     return g;
   }
 
-  // ---------- 3. Offene Positionen ----------
-  function positionsBlock(kontoKey, pos, preise) {
-    var b = el("div", "pos");
-    var kurs = Number(preise[pos.coin]);
-    var p = (kurs / pos.einstieg - 1) * 100;
-    var kn = el("div", "kontoname");
-    add(kn, el("span", "punkt c-" + KONTO_CLS[kontoKey]), el("span", null, KONTO_NAME[kontoKey]));
-    var kopfz = el("div", "titelzeile");
-    add(kopfz, kn, el("div", "pille " + (p >= 0 ? "gut" : "schlecht"), pct(p)));
-    add(b, kopfz);
-
-    var z = el("div", "zl");
-    var links = el("div");
-    add(links, el("b", null, pos.coin), el("span", "a", "  Einstieg " + usd(pos.einstieg)));
-    if (pos.geliehen > 0) add(links, el("span", "a", " · mit Hebel"));
-    add(z, links, el("div", null, "jetzt " + usd(kurs)));
-    z.lastChild.style.fontWeight = "600";
-    add(b, z);
-
-    var lo = pos.stop;
-    var hi = Math.max(kurs, pos.hoechster_schluss || 0, pos.einstieg) + Math.max(pos.einstieg - pos.stop, 0) * 0.5;
-    if (hi <= lo) hi = lo + 1;
-    function f(v) { return Math.max(0, Math.min(1, (v - lo) / (hi - lo))) * 100; }
-    var leiste = el("div", "leiste");
-    var ein = el("div", "einstieg"); ein.style.left = f(pos.einstieg) + "%";
-    var marke = el("div", "marke"); marke.style.left = f(kurs) + "%";
-    add(leiste, ein, marke);
-    add(b, leiste);
-
-    var unten = el("div", "zl");
-    var bisLimit = (kurs / pos.stop - 1) * 100;
-    add(unten, el("span", "klein", "Verlust-Limit " + usd(pos.stop)),
-      el("span", "klein", "noch " + pctOhneVz(Math.max(bisLimit, 0)) + " bis zum Limit"));
-    add(b, unten);
-    return b;
+  function schritt(spanne) {
+    var roh = spanne / 4, basis = Math.pow(10, Math.floor(Math.log10(roh)));
+    var r = roh / basis;
+    return (r < 1.5 ? 1 : r < 3.5 ? 2 : r < 7.5 ? 5 : 10) * basis;
   }
 
-  function abschnittPositionen(zustand) {
-    var g = glas();
-    add(g, titelzeile("Offene Positionen"));
-    var preise = zustand.preise || {};
+  function zeichneDiagramm(flaeche) {
+    var verlauf = flaeche._verlauf;
+    while (flaeche.firstChild) flaeche.removeChild(flaeche.firstChild);
+    var W = Math.max(flaeche.clientWidth, 280), H = Math.max(flaeche.clientHeight, 180);
+    var L = 46, R = 12, T = 10, B = 24;
+    var s = svg("svg", { "class": "chart", width: W, height: H, viewBox: "0 0 " + W + " " + H,
+      role: "img", "aria-label": "Verlauf der Konten in Prozent seit Start" });
+
+    var punkte = verlauf.filter(function (p) { return typeof p.zeit === "number"; });
+    function prozent(v) { return (v / START_KAPITAL - 1) * 100; }
+    var lo = 0, hi = 0;
+    punkte.forEach(function (p) {
+      KONTEN.forEach(function (k) { if (typeof p[k.key] === "number") { var v = prozent(p[k.key]); lo = Math.min(lo, v); hi = Math.max(hi, v); } });
+    });
+    if (hi - lo < 2) { var mitte = (hi + lo) / 2; lo = mitte - 1; hi = mitte + 1; }
+    var st = schritt(hi - lo);
+    lo = Math.floor(lo / st) * st; hi = Math.ceil(hi / st) * st;
+
+    var t0 = punkte.length ? punkte[0].zeit : 0, t1 = punkte.length ? punkte[punkte.length - 1].zeit : 1;
+    function x(t) { return punkte.length < 2 || t1 === t0 ? L + (W - L - R) / 2 : L + (t - t0) / (t1 - t0) * (W - L - R); }
+    function y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+
+    // waagrechte Linien mit Prozent-Beschriftung
+    for (var v = lo; v <= hi + st / 2; v += st) {
+      var gy = y(v).toFixed(1), null0 = Math.abs(v) < st / 1000;
+      add(s, svg("line", { x1: L, y1: gy, x2: W - R, y2: gy, "class": null0 ? "achse-null" : "gitter" }));
+      add(s, svg("text", { x: L - 8, y: Number(gy) + 4, "text-anchor": "end", "class": "achse-text" }, pct(null0 ? 0 : v, st < 1 ? 1 : 0)));
+    }
+    // Datums-Beschriftung unten
+    if (punkte.length > 1) {
+      var n = Math.min(6, Math.max(2, Math.floor((W - L - R) / 110)));
+      for (var i = 0; i < n; i++) {
+        var t = t0 + (t1 - t0) * i / (n - 1);
+        var anker = i === 0 ? "start" : (i === n - 1 ? "end" : "middle");
+        add(s, svg("text", { x: x(t).toFixed(1), y: H - 6, "text-anchor": anker, "class": "achse-text" }, datumKurz(new Date(t))));
+      }
+    }
+
+    // Linien: Bitcoin zuerst (hinten), Konten darüber
+    [KONTEN[3], KONTEN[2], KONTEN[0], KONTEN[1]].forEach(function (k) {
+      var pts = punkte.filter(function (p) { return typeof p[k.key] === "number"; });
+      if (!pts.length) return;
+      if (pts.length > 1) {
+        var d = pts.map(function (p, j) { return (j ? "L" : "M") + x(p.zeit).toFixed(1) + " " + y(prozent(p[k.key])).toFixed(1); }).join(" ");
+        add(s, svg("path", { d: d, "class": "linie l-" + k.cls }));
+      }
+      var last = pts[pts.length - 1];
+      add(s, svg("circle", { cx: x(last.zeit).toFixed(1), cy: y(prozent(last[k.key])).toFixed(1), r: 3.5, fill: k.farbe }));
+    });
+    add(flaeche, s);
+    if (punkte.length < 2) add(flaeche, el("div", "chart-hinweis", "Die Kurve entsteht mit den nächsten Läufen (alle 4 Stunden)."));
+  }
+
+  // ---------- 4. Offene Positionen ----------
+  function abschnittPositionen(z) {
+    var g = karte("positionen", "Offene Positionen");
+    var liste = el("div", "liste");
+    var preise = z.preise || {};
     var n = 0;
     ["ohne_bremse", "mit_bremse", "mutig"].forEach(function (key) {
-      var konto = (zustand.konten || {})[key];
+      var konto = (z.konten || {})[key];
       if (!konto) return;
       Object.keys(konto.positionen || {}).forEach(function (coin) {
         n++;
-        add(g, positionsBlock(key, konto.positionen[coin], preise));
+        var pos = konto.positionen[coin];
+        var kurs = Number(preise[coin]);
+        var p = (kurs / pos.einstieg - 1) * 100;
+        var row = el("div", "pos");
+        var oben = el("div", "pos-oben");
+        var name = el("span", "pos-name");
+        add(name, punkt(KONTO[key].cls), el("b", null, coin), el("span", "dim", KONTO[key].name + (pos.geliehen > 0 ? " · Hebel" : "")));
+        add(oben, name, el("span", "pos-pct " + klasse(p), pct(p)));
+        add(row, oben);
+
+        var lo = pos.stop;
+        var hi = Math.max(kurs, pos.hoechster_schluss || 0, pos.einstieg) + Math.max(pos.einstieg - pos.stop, 0) * 0.5;
+        if (hi <= lo) hi = lo + 1;
+        function f(v) { return Math.max(0, Math.min(1, (v - lo) / (hi - lo))) * 100; }
+        var leiste = el("div", "leiste");
+        var ein = el("i", "einstieg"); ein.style.left = f(pos.einstieg) + "%";
+        var marke = el("i", "marke"); marke.style.left = f(kurs) + "%";
+        add(leiste, ein, marke);
+        add(row, leiste);
+
+        var unten = el("div", "pos-unten");
+        add(unten, el("span", null, "Limit " + usd(pos.stop)), el("span", null, "Einstieg " + usd(pos.einstieg)), el("span", null, "jetzt " + usd(kurs)));
+        add(row, unten);
+        add(liste, row);
       });
       Object.keys(konto.vorgemerkt || {}).forEach(function (coin) {
-        var o = konto.vorgemerkt[coin];
         n++;
-        var b = el("div", "pos");
-        var kn = el("div", "kontoname");
-        add(kn, el("span", "punkt c-" + KONTO_CLS[key]), el("span", null, KONTO_NAME[key]));
-        add(b, kn);
-        var art = o.art === "verkauf" ? "Verkauf" : "Kauf";
-        var v = el("div", "vorm");
-        add(v, el("b", null, coin + ": "), document.createTextNode(art + " vorgemerkt zum nächsten Kurs"));
-        if (o.grund) add(v, el("div", "klein", o.grund));
-        add(b, v);
-        add(g, b);
+        var o = konto.vorgemerkt[coin];
+        var row = el("div", "pos vorm");
+        var name = el("span", "pos-name");
+        add(name, punkt(KONTO[key].cls), el("b", null, coin), el("span", "dim", KONTO[key].name));
+        add(row, name, el("div", "dim", (o.art === "verkauf" ? "Verkauf" : "Kauf") + " vorgemerkt zum nächsten Kurs"));
+        if (o.grund) row.title = o.grund;
+        add(liste, row);
       });
     });
-    if (!n) add(g, el("div", "leer", "Zurzeit hat kein Konto eine Position offen."));
-    else add(g, el("div", "klein", "Weißer Strich: jetziger Kurs · dünner Strich: Einstieg · links ist das Verlust-Limit."));
+    if (!n) add(liste, el("div", "leer", "Kein Konto ist gerade im Markt. Gekauft wird erst bei einem Ausbruch im Aufwärtstrend."));
+    add(g, liste);
     return g;
   }
 
-  // ---------- 4. Nachrichten-Bremse ----------
-  function abschnittBremse(zustand) {
-    var b = zustand.bremse;
-    if (!b) return null;
-    if (b.aktiv) {
-      var bis = b.bis_ms ? new Date(b.bis_ms) : null;
-      var t = "Nachrichten-Bremse aktiv";
-      if (bis) t += " bis " + uhrzeit(bis) + (tagKey(bis) !== tagKey(new Date()) ? " (" + datumKurz(bis) + ")" : "");
-      var teile = [];
-      if (b.grund) teile.push("Grund: " + b.grund);
-      if (b.quelle && !/\.json/i.test(String(b.quelle))) teile.push("Quelle: " + String(b.quelle).replace(/\s*https?:\/\/\S+/g, ""));
-      teile.push("Keine neuen Käufe – verkauft wird weiter normal.");
-      if (b.nachrichten_ok === false) teile.push("Nachrichten gerade nicht erreichbar.");
-      return hinweisFenster("warn", "#FFC48A", t, teile.join(" · "));
+  // ---------- 5. Letzte Trades ----------
+  function abschnittTrades(trades) {
+    var alle = (trades || []).slice().sort(function (a, b) { return b.verkauf_zeit - a.verkauf_zeit; });
+    var g = karte("trades", "Letzte Trades", alle.length ? el("span", "dim", alle.length + " abgeschlossen") : null);
+    var liste = el("div", "liste");
+    if (!alle.length) {
+      add(liste, el("div", "leer", "Noch kein Trade abgeschlossen."));
     }
-    var g = glas("hinweis");
-    var ok = b.nachrichten_ok !== false;
-    var s = svg("svg", { width: 28, height: 28, viewBox: "0 0 24 24", fill: "none", stroke: ok ? "#A7F3C0" : "#FFC48A",
-      "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" });
-    if (ok) add(s, svg("circle", { cx: 12, cy: 12, r: 9 }), svg("path", { d: "M8 12.5l2.7 2.7L16 9.5" }));
-    else add(s, svg("circle", { cx: 12, cy: 12, r: 9 }), svg("line", { x1: 12, y1: 7, x2: 12, y2: 13 }), svg("circle", { cx: 12, cy: 16.5, r: 0.6 }));
-    var txt = el("div", "txt");
-    add(txt, el("div", "t1", ok ? "Nachrichten-Bremse: frei" : "Nachrichten nicht erreichbar"),
-      el("div", "klein", ok ? "Keine Schock-Meldung, kein Termin – der Trader darf kaufen."
-        : "Der Trader handelt ohne Bremse, bis die Nachrichten wieder erreichbar sind."));
-    add(g, s, txt);
+    alle.slice(0, 30).forEach(function (t) {
+      var row = el("div", "trade");
+      var k = KONTO[t.konto] || KONTO.btc_halten;
+      var links = el("div", "trade-l");
+      var z1 = el("div", "trade-z1");
+      add(z1, punkt(k.cls), el("b", null, t.coin), el("span", "dim", k.name));
+      add(links, z1, el("div", "dim klein", datumUhr(new Date(t.verkauf_zeit)) + (t.grund_verkauf ? " · " + t.grund_verkauf : "")));
+      var rechts = el("div", "trade-r");
+      var cls = klasse(t.ergebnis_usd);
+      add(rechts, el("b", cls, usdVz(t.ergebnis_usd)), el("span", cls + " klein", pct(t.ergebnis_pct, 1)));
+      add(row, links, rechts);
+      if (t.grund_kauf) row.title = "Kauf: " + t.grund_kauf + (t.grund_verkauf ? "\nVerkauf: " + t.grund_verkauf : "");
+      add(liste, row);
+    });
+    add(g, liste);
     return g;
   }
 
-  // ---------- 5. Rückblick-Test ----------
+  // ---------- 6. Rückblick-Test ----------
   var STRATEGIEN = [
-    { key: "ruhig", name: "Ruhig" },
-    { key: "mutig", name: "Mutig" },
+    { key: "ruhig", name: "Ruhig (1 % Risiko)" },
+    { key: "mutig", name: "Mutig (3 % Risiko)" },
     { key: "mutig_hebel", name: "Mutig + Hebel" },
     { key: "btc_halten", name: "Bitcoin halten" },
-    { key: "halten_50_50", name: "50/50 halten" }
+    { key: "halten_50_50", name: "50/50 BTC + ETH halten" }
   ];
   var STUFE_KEY = { "Ruhig": "ruhig", "Mutig": "mutig", "Mutig + Hebel": "mutig_hebel" };
-
-  function wertBlock(titel, zeitraum, m, istHalten) {
-    var w = el("div");
-    add(w, el("div", "zeitraum", titel + " · " + zeitraum));
-    var r = el("div", "werte");
-    function feld(label, text, cls) {
-      var d = el("div");
-      add(d, el("span", "l", label), el("span", "z" + (cls ? " " + cls : ""), text));
-      return d;
-    }
-    add(r, feld("Rendite", pct(m.rendite_pct), vorzeichenKlasse(m.rendite_pct)),
-      feld("tiefster Absturz", pctOhneVz(m.tiefster_absturz_pct)),
-      feld("größter Einzeltrade", istHalten ? "–" : pct(m.groesster_trade_pct)));
-    if (!istHalten) {
-      add(r, feld("Trades", typeof m.trades === "number" ? m.trades.toLocaleString("de-DE") : "–"),
-        feld("Trefferquote", typeof m.trefferquote_pct === "number" ? pctOhneVz(m.trefferquote_pct) : "–"),
-        feld("Trades über +10 %", typeof m.trades_ueber_10 === "number" ? m.trades_ueber_10.toLocaleString("de-DE") : "–"));
-    }
-    add(w, r);
-    return w;
-  }
+  var LIVE_KONTEN = { ruhig: "Ohne Bremse, Mit Bremse", mutig: "Mutig", mutig_hebel: "Mutig" };
 
   function abschnittRueckblick(rb) {
-    var g = glas();
-    add(g, titelzeile("Rückblick-Test"));
-    var d = new Date(rb.stand);
-    if (!isNaN(d)) add(g, el("div", "klein", "Stand: " + datumLang(d) + " · so hätten die Regeln in der Vergangenheit abgeschnitten"));
-    if (rb.parameter && rb.parameter.beschreibung) add(g, el("div", "text", "Gewählte Regeln: " + rb.parameter.beschreibung));
     var kal = rb.kalibrierung || {}, pr = rb.pruefung || {};
-    var zrKal = kal.von && kal.bis ? datumLang(new Date(kal.von)) + " – " + datumLang(endeAnzeige(kal.bis)) : "";
-    var zrPr = pr.von && pr.bis ? datumLang(new Date(pr.von)) + " – " + datumLang(endeAnzeige(pr.bis)) : "";
+    var d = new Date(rb.stand);
+    var g = karte("rueckblick", "Rückblick-Test: so hätten die Regeln abgeschnitten",
+      el("span", "dim", isNaN(d) ? "" : "eingefroren am " + datumLang(d)));
     var gewaehlt = STUFE_KEY[rb.mutig_stufe];
+    var jk = kal.von && kal.bis ? jahre(kal.von, kal.bis) : "Kalibrierung";
+    var jp = pr.von && pr.bis ? jahre(pr.von, pr.bis) : "Prüfung";
+
+    var tab = el("table", "rb-tabelle");
+    var thead = el("thead");
+    var r1 = el("tr");
+    add(r1, el("th", "links", ""), th2("Festgelegt " + jk, 2, "gruppe kal"), th2("Geprüft " + jp, 2, "gruppe haupt"),
+      th2("Trades", 1), th2("Treffer", 1), th2("bester Trade", 1, "opt"));
+    var r2 = el("tr", "unter");
+    add(r2, el("th", "links", "Strategie"), el("th", "kal", "Rendite"), el("th", "kal", "tiefster Absturz"),
+      el("th", "haupt", "Rendite"), el("th", "haupt", "tiefster Absturz"), el("th"), el("th"), el("th", "opt"));
+    add(thead, r1, r2);
+    add(tab, thead);
+
+    var tbody = el("tbody");
     STRATEGIEN.forEach(function (s) {
-      if (!kal[s.key] && !pr[s.key]) return;
+      var a = kal[s.key], b = pr[s.key];
+      if (!a && !b) return;
       var halten = s.key === "btc_halten" || s.key === "halten_50_50";
-      var box = el("div", "sgr" + (s.key === gewaehlt ? " gewaehlt" : ""));
-      var h = el("h3");
-      add(h, el("span", null, s.name));
-      if (s.key === gewaehlt) add(h, el("span", "pille", "Mutig-Konto"));
-      add(box, h);
-      if (kal[s.key]) add(box, wertBlock("Kalibrierung", zrKal, kal[s.key], halten));
-      if (pr[s.key]) add(box, wertBlock("Prüfung", zrPr, pr[s.key], halten));
-      add(g, box);
+      var live = s.key === "ruhig" || s.key === gewaehlt;
+      var tr = el("tr", (halten ? "halten" : "") + (live ? " live" : ""));
+      var name = el("td", "links");
+      add(name, el("span", null, s.name));
+      if (live) add(name, el("span", "tag", "läuft live"));
+      add(tr, name,
+        zelle(a ? pct(a.rendite_pct) : "–", "kal " + (a ? klasse(a.rendite_pct) : "")),
+        zelle(a ? MINUS + pctOhneVz(a.tiefster_absturz_pct) : "–", "kal dim"),
+        zelle(b ? pct(b.rendite_pct) : "–", "haupt " + (b ? klasse(b.rendite_pct) : "")),
+        zelle(b ? MINUS + pctOhneVz(b.tiefster_absturz_pct) : "–", "haupt dim"),
+        zelle(!halten && b && typeof b.trades === "number" ? String(b.trades) : "–", "dim"),
+        zelle(!halten && b && typeof b.trefferquote_pct === "number" ? pctOhneVz(b.trefferquote_pct) : "–", "dim"),
+        zelle(!halten && b && typeof b.groesster_trade_pct === "number" ? pct(b.groesster_trade_pct) : "–", "opt dim"));
+      add(tbody, tr);
     });
-    add(g, el("div", "klein", "Kalibrierung: darauf wurden die Regeln eingestellt. Prüfung: ungesehene Zeit danach – die zählt."));
-    if (rb.mutig_stufe) {
-      add(g, el("div", "text", "Das Mutig-Konto läuft als „" + rb.mutig_stufe + "“." + (rb.mutig_grund ? " " + rb.mutig_grund : "")));
-    }
-    // Hinweis nur, wenn ALLE live laufenden Regeln (Ruhig und die gewählte Mutig-Stufe) schlechter waren als Halten
+    add(tab, tbody);
+    var rahmen = el("div", "tabelle-rahmen");
+    add(rahmen, tab);
+    add(g, rahmen);
+
+    var hinweis = el("p", "fussnote");
+    add(hinweis, el("b", null, "Geprüft"), document.createTextNode(" = Jahre, die die Regeln nie gesehen haben (die zählen). "),
+      el("b", null, "Tiefster Absturz"), document.createTextNode(" = größter Rückgang vom Höchststand."));
     var lebende = [pr.ruhig, pr[gewaehlt]];
     if (pr.btc_halten && lebende.every(function (m) { return m && m.rendite_pct < pr.btc_halten.rendite_pct; })) {
-      add(g, el("div", "text", "Im Prüfzeitraum war einfach Halten besser. Die Bewährungsprobe läuft trotzdem, sie kostet nichts."));
+      add(hinweis, document.createTextNode(" Im Prüfzeitraum war einfach Halten besser – die Bewährungsprobe läuft trotzdem."));
     }
+    if (rb.parameter && rb.parameter.beschreibung) hinweis.title = "Regeln: " + rb.parameter.beschreibung;
+    add(g, hinweis);
     return g;
   }
+  function th2(text, span, cls) { var t = el("th", cls || null, text); if (span > 1) t.colSpan = span; return t; }
+  function zelle(text, cls) { return el("td", cls || null, text); }
 
-  // ---------- 6. Letzte Trades ----------
-  function abschnittTrades(trades) {
-    var g = glas();
-    add(g, titelzeile("Letzte Trades"));
-    var liste = (trades || []).slice().sort(function (a, b) { return b.verkauf_zeit - a.verkauf_zeit; }).slice(0, 10);
-    if (!liste.length) {
-      add(g, el("div", "leer", "Noch kein Trade abgeschlossen."));
-      return g;
-    }
-    liste.forEach(function (t) {
-      var row = el("div", "trade");
-      var l = el("div", "l");
-      var k = el("div", "k");
-      add(k, el("span", "punkt c-" + (KONTO_CLS[t.konto] || "btc")), el("span", null, t.coin),
-        el("span", "klein", KONTO_NAME[t.konto] || t.konto));
-      add(l, k);
-      if (t.grund_kauf) add(l, el("div", "g", "Kauf: " + t.grund_kauf));
-      if (t.grund_verkauf) add(l, el("div", "g", "Verkauf: " + t.grund_verkauf));
-      add(l, el("div", "g", "Verkauft: " + datumUhr(new Date(t.verkauf_zeit))));
-      var r = el("div", "r");
-      var cls = vorzeichenKlasse(t.ergebnis_usd);
-      add(r, el("b", cls, usdVz(t.ergebnis_usd)), el("span", cls, pct(t.ergebnis_pct, 1)),
-        el("span", "ul", "Ergebnis des Trades"));
-      add(row, l, r);
-      add(g, row);
-    });
-    return g;
-  }
-
-  // ---------- 7. Urteil ----------
-  var URTEILE = {
-    bewiesen: ["🟢", "Bewiesen: hat Geld gemacht"],
-    nicht_bewiesen: ["🔴", "Nicht bewiesen: kein Gewinn"],
-    zu_wenige_trades: ["⚪", "Noch kein Urteil – zu wenige Trades"]
-  };
-  function abschnittUrteil(zustand) {
-    var konten = zustand.konten || {};
-    if (!hatUrteil(zustand)) return null; // erst wenn ein endgültiges Urteil steht (nach 56 vollen Tagen)
-    var g = glas();
-    add(g, titelzeile("Urteil", el("div", "klein", "nach " + PROBE_TAGE + " Tagen")));
+  // ---------- Urteil (nur Handy; am PC steht es in den Kennzahlen) ----------
+  function abschnittUrteil(z) {
+    if (!hatUrteil(z)) return null;
+    var g = karte("urteil-karte", "Urteil nach " + PROBE_TAGE + " Tagen");
     ["ohne_bremse", "mit_bremse", "mutig"].forEach(function (key) {
-      var k = konten[key];
+      var k = (z.konten || {})[key];
       if (!k || !URTEILE[k.urteil]) return;
       var u = URTEILE[k.urteil];
-      var row = el("div", "urteil");
-      var tx = el("div", "u");
-      add(tx, el("span", null, KONTO_NAME[key] + ": " + u[1]),
-        el("small", null, usd(k.wert) + " · " + k.abgeschlossene_trades + (k.abgeschlossene_trades === 1 ? " Trade" : " Trades") + " abgeschlossen"));
-      add(row, el("span", "em", u[0]), tx);
+      var row = el("div", "urteil-zeile");
+      add(row, punkt(KONTO[key].cls), el("b", null, KONTO[key].name), el("span", "urteil " + u.cls, u.text));
       add(g, row);
     });
-    if (zustand.btc_halten) add(g, el("div", "klein", "Zum Vergleich: Bitcoin halten steht bei " + usd(zustand.btc_halten.wert) + "."));
-    add(g, el("div", "klein", "Bewiesen heißt: Kontostand nach allen Gebühren über " + usd(START_KAPITAL, 0) + " und mindestens " + MIN_TRADES + " abgeschlossene Trades."));
+    add(g, el("p", "fussnote", "Bewiesen heißt: Kontostand nach allen Gebühren über " + usd(START_KAPITAL, 0) + " und mindestens " + MIN_TRADES + " abgeschlossene Trades."));
     return g;
   }
 
@@ -482,37 +509,46 @@
     var app = document.getElementById("app");
     var neu = document.createDocumentFragment();
     var z = daten.zustand;
-    add(neu, kopf(z, daten.status, daten.verlauf));
-    warnungen(daten.status, daten.verlauf).forEach(function (w) { add(neu, w); });
+
+    var oben = el("div", "oben");
+    add(oben, kopf(z, daten.status, daten.verlauf));
+    warnungen(daten.status, daten.verlauf).forEach(function (w) { add(oben, w); });
+    add(neu, oben);
 
     if (z) {
-      add(neu, abschnittVorne(z, daten.verlauf));
+      add(neu, kennzahlen(z));
+      add(neu, abschnittVerlauf(daten.verlauf));
       add(neu, abschnittPositionen(z));
-      add(neu, abschnittBremse(z));
+      add(neu, abschnittTrades(daten.trades));
     } else {
-      var g = glas();
-      add(g, el("div", "titel", "Der Trader startet beim nächsten Lauf."),
-        el("div", "text", "Sobald der erste Lauf fertig ist, erscheinen hier die Konten, der Vergleich mit Bitcoin und die Trades."));
+      var g = karte("start", "Der Trader startet beim nächsten Lauf.");
+      add(g, el("p", "fussnote", "Sobald der erste Lauf fertig ist, erscheinen hier die Konten, der Vergleich mit Bitcoin und die Trades."));
       add(neu, g);
     }
     if (daten.rueckblick) add(neu, abschnittRueckblick(daten.rueckblick));
-    if (z) {
-      add(neu, abschnittTrades(daten.trades));
-      add(neu, abschnittUrteil(z));
-    }
-    add(neu, el("div", "fuss", BEISPIEL ? "Beispieldaten – nur zum Ansehen" : "Spielgeld, kein echtes Geld · lädt alle 5 Minuten neu"));
+    if (z) add(neu, abschnittUrteil(z));
+    add(neu, el("footer", "fuss", BEISPIEL ? "Beispieldaten – nur zum Ansehen" : "Spielgeld, kein echtes Geld · Werte nach allen Gebühren · lädt alle 5 Minuten neu"));
+
     while (app.firstChild) app.removeChild(app.firstChild);
     app.appendChild(neu);
+    diagrammeZeichnen();
   }
+
+  function diagrammeZeichnen() {
+    var f = document.querySelector(".chart-flaeche");
+    if (f) zeichneDiagramm(f);
+  }
+  var resizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(diagrammeZeichnen, 120);
+  });
 
   function alles() {
     return Promise.all([laden("zustand.json"), laden("verlauf.json"), laden("trades.json"), laden("status.json"), ladenRueckblick()])
-      .then(function (r) {
-        bauen({ zustand: r[0], verlauf: r[1], trades: r[2], status: r[3], rueckblick: r[4] });
-      })
+      .then(function (r) { bauen({ zustand: r[0], verlauf: r[1], trades: r[2], status: r[3], rueckblick: r[4] }); })
       .catch(function (e) {
-        var app = document.getElementById("app");
-        app.textContent = "Die Seite konnte nicht aufgebaut werden. Bitte später noch einmal laden.";
+        document.getElementById("app").textContent = "Die Seite konnte nicht aufgebaut werden. Bitte später noch einmal laden.";
         if (window.console) console.error(e);
       });
   }
