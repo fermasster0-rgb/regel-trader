@@ -1,0 +1,73 @@
+{
+ "start_ms": 1795698867008,
+ "tag": 1,
+ "abgeschlossene_tage": 0,
+ "letzte_kerze": {
+  "BTC": 1795680000000,
+  "ETH": 1795680000000
+ },
+ "preise": {
+  "BTC": 60714.01,
+  "ETH": 1700.36
+ },
+ "parameter": {
+  "n_trend": 200,
+  "n_ein": 40,
+  "n_aus": 20,
+  "k_stop": 3.0,
+  "k_trail": 3.0,
+  "n_atr": 14,
+  "beschreibung": "Trend: Durchschnitt der letzten 200 Kerzen · Kauf: Ausbruch über das 40-Kerzen-Hoch · Verkauf: Schluss unter dem 20-Kerzen-Tief · Verlust-Limit: 3 × übliche Schwankung, nachgezogen mit 3 × übliche Schwankung"
+ },
+ "konten": {
+  "ohne_bremse": {
+   "name": "Ohne Bremse",
+   "stufe": "Ruhig",
+   "bargeld": 10000.0,
+   "pleite": false,
+   "positionen": {},
+   "vorgemerkt": {},
+   "trades": [],
+   "wert": 10000.0,
+   "abgeschlossene_trades": 0,
+   "urteil": "laeuft"
+  },
+  "mit_bremse": {
+   "name": "Mit Bremse",
+   "stufe": "Ruhig",
+   "bargeld": 10000.0,
+   "pleite": false,
+   "positionen": {},
+   "vorgemerkt": {},
+   "trades": [],
+   "wert": 10000.0,
+   "abgeschlossene_trades": 0,
+   "urteil": "laeuft"
+  },
+  "mutig": {
+   "name": "Mutig",
+   "stufe": "Mutig + Hebel",
+   "bargeld": 10000.0,
+   "pleite": false,
+   "positionen": {},
+   "vorgemerkt": {},
+   "trades": [],
+   "wert": 10000.0,
+   "abgeschlossene_trades": 0,
+   "urteil": "laeuft"
+  }
+ },
+ "btc_halten": {
+  "menge": 0.16445985829744003,
+  "start_preis": 60714.01,
+  "wert": 9970.04
+ },
+ "bremse": {
+  "aktiv": false,
+  "bis_ms": null,
+  "grund": "",
+  "quelle": "",
+  "nachrichten_ok": true
+ },
+ "ereignisse": []
+}
