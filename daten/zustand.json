@@ -3,12 +3,12 @@
  "tag": 2,
  "abgeschlossene_tage": 1,
  "letzte_kerze": {
-  "BTC": 1795766400000,
-  "ETH": 1795766400000
+  "BTC": 1795795200000,
+  "ETH": 1795795200000
  },
  "preise": {
-  "BTC": 61662.57,
-  "ETH": 1724.04
+  "BTC": 59910.33,
+  "ETH": 1671.26
  },
  "parameter": {
   "n_trend": 200,
@@ -60,13 +60,13 @@
  "btc_halten": {
   "menge": 0.16445985829744003,
   "start_preis": 60714.01,
-  "wert": 10125.81
+  "wert": 9838.07
  },
  "bremse": {
   "aktiv": true,
-  "bis_ms": 1795872257000,
-  "grund": "Schock-Meldung: Binance Fully Lifts Withdrawal Suspension Four Weeks After $6.4B Hack",
-  "quelle": "Decrypt https://decrypt.co/384121/binance-fully-lifts-withdrawal-suspension-four-weeks-after-6-4b-hack",
+  "bis_ms": 1795888800000,
+  "grund": "Schock-Meldung: Binance Fully Lifts Withdrawal Suspension a Month After $6.3 Billion Hack",
+  "quelle": "Bitcoin Magazine https://bitcoinmagazine.com/news/binance-lifts-withdrawal-suspension-hack",
   "nachrichten_ok": true
  },
  "ereignisse": []
