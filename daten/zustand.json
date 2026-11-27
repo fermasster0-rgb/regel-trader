@@ -3,12 +3,12 @@
  "tag": 1,
  "abgeschlossene_tage": 0,
  "letzte_kerze": {
-  "BTC": 1795694400000,
-  "ETH": 1795694400000
+  "BTC": 1795723200000,
+  "ETH": 1795723200000
  },
  "preise": {
-  "BTC": 60618.79,
-  "ETH": 1692.54
+  "BTC": 60577.18,
+  "ETH": 1689.85
  },
  "parameter": {
   "n_trend": 200,
@@ -60,13 +60,13 @@
  "btc_halten": {
   "menge": 0.16445985829744003,
   "start_preis": 60714.01,
-  "wert": 9954.41
+  "wert": 9947.58
  },
  "bremse": {
-  "aktiv": false,
-  "bis_ms": null,
-  "grund": "",
-  "quelle": "",
+  "aktiv": true,
+  "bis_ms": 1795815227000,
+  "grund": "Schock-Meldung: Binance completes withdrawal recovery four weeks after $6.3B hack",
+  "quelle": "Cointelegraph https://cointelegraph.com/news/binance-completes-withdrawal-recovery-four-weeks-after-63b-hack?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound",
   "nachrichten_ok": true
  },
  "ereignisse": []

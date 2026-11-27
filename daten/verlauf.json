@@ -12,5 +12,12 @@
   "mit_bremse": 10000.0,
   "mutig": 10000.0,
   "btc_halten": 9954.41
+ },
+ {
+  "zeit": 1795745878913,
+  "ohne_bremse": 10000.0,
+  "mit_bremse": 10000.0,
+  "mutig": 10000.0,
+  "btc_halten": 9947.58
  }
 ]
