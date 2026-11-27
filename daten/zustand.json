@@ -1,7 +1,7 @@
 {
  "start_ms": 1795698867008,
- "tag": 1,
- "abgeschlossene_tage": 0,
+ "tag": 2,
+ "abgeschlossene_tage": 1,
  "letzte_kerze": {
   "BTC": 1795766400000,
   "ETH": 1795766400000
@@ -64,9 +64,9 @@
  },
  "bremse": {
   "aktiv": true,
-  "bis_ms": 1795815227000,
-  "grund": "Schock-Meldung: Binance completes withdrawal recovery four weeks after $6.3B hack",
-  "quelle": "Cointelegraph https://cointelegraph.com/news/binance-completes-withdrawal-recovery-four-weeks-after-63b-hack?utm_source=rss_feed&utm_medium=rss&utm_campaign=rss_partner_inbound",
+  "bis_ms": 1795872257000,
+  "grund": "Schock-Meldung: Binance Fully Lifts Withdrawal Suspension Four Weeks After $6.4B Hack",
+  "quelle": "Decrypt https://decrypt.co/384121/binance-fully-lifts-withdrawal-suspension-four-weeks-after-6-4b-hack",
   "nachrichten_ok": true
  },
  "ereignisse": []
