@@ -3,12 +3,12 @@
  "tag": 2,
  "abgeschlossene_tage": 1,
  "letzte_kerze": {
-  "BTC": 1795795200000,
-  "ETH": 1795795200000
+  "BTC": 1795809600000,
+  "ETH": 1795809600000
  },
  "preise": {
-  "BTC": 59910.33,
-  "ETH": 1671.26
+  "BTC": 59923.1,
+  "ETH": 1662.48
  },
  "parameter": {
   "n_trend": 200,
@@ -60,7 +60,7 @@
  "btc_halten": {
   "menge": 0.16445985829744003,
   "start_preis": 60714.01,
-  "wert": 9838.07
+  "wert": 9840.17
  },
  "bremse": {
   "aktiv": true,
